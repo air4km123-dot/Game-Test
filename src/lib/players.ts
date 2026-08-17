@@ -21,6 +21,23 @@ export const COLOR_PRESETS: ColorPreset[] = [
   { id: "orange", label: "ส้ม", hex: "#fb923c" },
 ];
 
+export interface DefaultRosterEntry {
+  name: string;
+  emoji: string;
+  color: string;
+}
+
+/** Auto-added to every new game so the usual lunch crew doesn't need re-entering each time. */
+export const DEFAULT_ROSTER: DefaultRosterEntry[] = [
+  { name: "ออม", emoji: "🐶", color: "#ef4444" },
+  { name: "เกล", emoji: "🐱", color: "#fbbf24" },
+  { name: "กิ๊ฟ", emoji: "🐰", color: "#ec4899" },
+  { name: "ต้น", emoji: "🐻", color: "#22c55e" },
+  { name: "หนุ่ม", emoji: "🦊", color: "#3b82f6" },
+  { name: "เมย์", emoji: "🐼", color: "#a855f7" },
+  { name: "เจน", emoji: "🐨", color: "#14b8a6" },
+];
+
 export function randomEmoji(exclude: string[] = []): string {
   const pool = EMOJI_PRESETS.filter((e) => !exclude.includes(e));
   const list = pool.length > 0 ? pool : EMOJI_PRESETS;

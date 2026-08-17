@@ -11,6 +11,7 @@ import type { Game, Player, Round } from "../types";
 import { generateId } from "../lib/id";
 import { loadGames, saveGames } from "../lib/storage";
 import { renumberRounds, settlementKey } from "../lib/calculations";
+import { DEFAULT_ROSTER } from "../lib/players";
 
 interface NewPlayerInput {
   name: string;
@@ -71,7 +72,13 @@ export function GamesProvider({ children }: { children: ReactNode }) {
       updatedAt: now,
       finishedAt: null,
       status: "active",
-      players: [],
+      players: DEFAULT_ROSTER.map((entry) => ({
+        id: generateId(),
+        name: entry.name,
+        emoji: entry.emoji,
+        color: entry.color,
+        active: true,
+      })),
       rounds: [],
       settlementStatus: {},
     };
