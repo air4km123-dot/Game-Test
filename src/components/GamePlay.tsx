@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useGames } from "../context/GamesContext";
 import { PlayerModal } from "./PlayerModal";
+import { EditRoundModal } from "./EditRoundModal";
 import { EmptyState } from "./ui/EmptyState";
 import { Toast } from "./ui/Toast";
 import { Confetti } from "./ui/Confetti";
@@ -11,14 +12,16 @@ interface GamePlayProps {
 }
 
 export function GamePlay({ gameId }: GamePlayProps) {
-  const { getGame, setPlayerActive, addRound, addPlayer } = useGames();
+  const { getGame, setPlayerActive, addRound, editRound, addPlayer } = useGames();
   const game = getGame(gameId);
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [toast, setToast] = useState<{ title: string; sub: string } | null>(null);
   const [celebrate, setCelebrate] = useState(false);
+  const [fixingLastRound, setFixingLastRound] = useState(false);
 
   const activePlayers = useMemo(() => game?.players.filter((p) => p.active) ?? [], [game]);
+  const lastRound = game && game.rounds.length > 0 ? game.rounds[game.rounds.length - 1] : null;
 
   if (!game) return null;
 
@@ -54,11 +57,23 @@ export function GamePlay({ gameId }: GamePlayProps) {
         message={toast?.title ?? null}
         subMessage={toast?.sub}
         onDone={() => setToast(null)}
+        actionLabel={lastRound ? "กดผิด? แก้ไข" : undefined}
+        onAction={() => setFixingLastRound(true)}
       />
 
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-base font-bold text-choc-700">ผู้เล่นรอบนี้</h2>
-        <span className="text-xs font-bold text-choc-400">รอบที่ {game.rounds.length + 1}</span>
+        <div className="flex items-center gap-2">
+          {lastRound && (
+            <button
+              onClick={() => setFixingLastRound(true)}
+              className="text-xs font-bold text-uno-blue underline underline-offset-2 active:opacity-60"
+            >
+              ✏️ แก้รอบที่ {lastRound.roundNumber}
+            </button>
+          )}
+          <span className="text-xs font-bold text-choc-400">รอบที่ {game.rounds.length + 1}</span>
+        </div>
       </div>
 
       {game.players.length === 0 ? (
@@ -118,7 +133,12 @@ export function GamePlay({ gameId }: GamePlayProps) {
 
           {activePlayers.length >= 2 && (
             <>
-              <h2 className="text-base font-bold text-choc-700 mb-3 mt-5">ใครชนะรอบนี้?</h2>
+              <div className="flex items-baseline justify-between mb-3 mt-5">
+                <h2 className="text-base font-bold text-choc-700">ใครชนะรอบนี้?</h2>
+                {winnerId && (
+                  <span className="text-xs text-choc-400">แตะคนอื่นเพื่อเปลี่ยนได้</span>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2.5 mb-6">
                 {activePlayers.map((p) => {
                   const isWinner = winnerId === p.id;
@@ -159,6 +179,16 @@ export function GamePlay({ gameId }: GamePlayProps) {
         onClose={() => setShowAddPlayer(false)}
         existingEmojis={game.players.map((p) => p.emoji)}
         onSave={(input) => addPlayer(gameId, input)}
+      />
+
+      <EditRoundModal
+        open={fixingLastRound}
+        round={lastRound}
+        allPlayers={game.players}
+        onClose={() => setFixingLastRound(false)}
+        onSave={(input) => {
+          if (lastRound) editRound(gameId, lastRound.id, input);
+        }}
       />
     </div>
   );

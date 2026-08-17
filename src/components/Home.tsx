@@ -76,13 +76,15 @@ export function Home({ onOpenGame }: HomeProps) {
 
   return (
     <div className="flex-1 overflow-y-auto pb-6">
-      <header className="px-5 pt-8 pb-4 text-center">
-        <div className="text-5xl mb-1">🍪</div>
-        <h1 className="text-2xl font-display font-extrabold text-choc-800">เคลียร์คุกกี้</h1>
-        <p className="text-sm text-choc-500 font-bold mt-0.5">หนี้คุกกี้ต้องเคลียร์</p>
+      <header className="sticky top-0 z-10 flex items-center gap-2.5 px-4 py-3 bg-cookie-50/95 backdrop-blur border-b border-cookie-200">
+        <span className="text-2xl leading-none shrink-0">🍪</span>
+        <div className="min-w-0 leading-tight">
+          <h1 className="text-base font-display font-extrabold text-choc-800 truncate">เคลียร์คุกกี้</h1>
+          <p className="text-[11px] text-choc-400 font-bold truncate">หนี้คุกกี้ต้องเคลียร์</p>
+        </div>
       </header>
 
-      <section className="px-5">
+      <section className="px-5 pt-4">
         <h2 className="text-sm font-bold text-choc-500 mb-2">เกมที่กำลังเล่น</h2>
         {activeGames.length === 0 ? (
           <EmptyState
