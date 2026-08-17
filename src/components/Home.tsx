@@ -3,10 +3,11 @@ import { useGames } from "../context/GamesContext";
 import { NewGameModal } from "./NewGameModal";
 import { EmptyState } from "./ui/EmptyState";
 import { ConfirmDialog } from "./ui/ConfirmDialog";
+import type { GameTab } from "./BottomNavigation";
 import type { Game } from "../types";
 
 interface HomeProps {
-  onOpenGame: (gameId: string) => void;
+  onOpenGame: (gameId: string, tab?: GameTab) => void;
 }
 
 function formatDate(ts: number): string {
@@ -98,7 +99,7 @@ export function Home({ onOpenGame }: HomeProps) {
               key={g.id}
               game={g}
               active
-              onOpen={() => onOpenGame(g.id)}
+              onOpen={() => onOpenGame(g.id, "play")}
               onDelete={() => setDeleteTarget(g)}
             />
           ))
@@ -122,7 +123,7 @@ export function Home({ onOpenGame }: HomeProps) {
               key={g.id}
               game={g}
               active={false}
-              onOpen={() => onOpenGame(g.id)}
+              onOpen={() => onOpenGame(g.id, "summary")}
               onDelete={() => setDeleteTarget(g)}
             />
           ))

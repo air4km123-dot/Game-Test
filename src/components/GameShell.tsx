@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useGames } from "../context/GamesContext";
-import { BottomNavigation, type GameTab } from "./BottomNavigation";
+import type { GameTab } from "./BottomNavigation";
 import { GamePlay } from "./GamePlay";
 import { RoundHistory } from "./RoundHistory";
 import { GameSummary } from "./GameSummary";
@@ -10,11 +10,10 @@ import { Modal } from "./ui/Modal";
 interface GameShellProps {
   gameId: string;
   tab: GameTab;
-  onChangeTab: (tab: GameTab) => void;
   onBack: () => void;
 }
 
-export function GameShell({ gameId, tab, onChangeTab, onBack }: GameShellProps) {
+export function GameShell({ gameId, tab, onBack }: GameShellProps) {
   const { getGame, finishGame, reopenGame, deleteGame, renameGame } = useGames();
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
@@ -70,8 +69,6 @@ export function GameShell({ gameId, tab, onChangeTab, onBack }: GameShellProps) 
         {tab === "history" && <RoundHistory gameId={gameId} />}
         {tab === "summary" && <GameSummary gameId={gameId} />}
       </div>
-
-      <BottomNavigation active={tab} onChange={onChangeTab} />
 
       <Modal open={menuOpen} onClose={() => setMenuOpen(false)} title="⚙️ จัดการเกม">
         <div className="flex flex-col gap-2 pb-2">

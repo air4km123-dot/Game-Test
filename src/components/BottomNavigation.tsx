@@ -1,7 +1,7 @@
 export type GameTab = "play" | "history" | "summary";
 
 interface BottomNavigationProps {
-  active: GameTab;
+  active: GameTab | null;
   onChange: (tab: GameTab) => void;
 }
 
