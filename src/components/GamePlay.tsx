@@ -22,6 +22,13 @@ export function GamePlay({ gameId }: GamePlayProps) {
 
   const activePlayers = useMemo(() => game?.players.filter((p) => p.active) ?? [], [game]);
   const lastRound = game && game.rounds.length > 0 ? game.rounds[game.rounds.length - 1] : null;
+  const winCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const round of game?.rounds ?? []) {
+      counts[round.winnerId] = (counts[round.winnerId] ?? 0) + 1;
+    }
+    return counts;
+  }, [game]);
 
   if (!game) return null;
 
@@ -142,6 +149,7 @@ export function GamePlay({ gameId }: GamePlayProps) {
               <div className="grid grid-cols-2 gap-2.5 mb-6">
                 {activePlayers.map((p) => {
                   const isWinner = winnerId === p.id;
+                  const wins = winCounts[p.id] ?? 0;
                   return (
                     <button
                       key={p.id}
@@ -156,6 +164,13 @@ export function GamePlay({ gameId }: GamePlayProps) {
                       <span className="text-3xl">{p.emoji}</span>
                       <span className="font-bold text-choc-800 text-sm truncate w-full text-center">
                         {p.name}
+                      </span>
+                      <span
+                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                          wins > 0 ? "bg-uno-green/15 text-uno-green-dark" : "bg-cookie-100 text-choc-300"
+                        }`}
+                      >
+                        🏆 ชนะ {wins} รอบ
                       </span>
                     </button>
                   );
