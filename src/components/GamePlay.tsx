@@ -22,6 +22,7 @@ export function GamePlay({ gameId }: GamePlayProps) {
 
   const activePlayers = useMemo(() => game?.players.filter((p) => p.active) ?? [], [game]);
   const lastRound = game && game.rounds.length > 0 ? game.rounds[game.rounds.length - 1] : null;
+  const lastWinnerId = lastRound?.winnerId ?? null;
   const winCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const round of game?.rounds ?? []) {
@@ -112,7 +113,10 @@ export function GamePlay({ gameId }: GamePlayProps) {
                 style={{ borderColor: p.active ? p.color : "#e5d4b8" }}
               >
                 <span className="text-2xl shrink-0">{p.emoji}</span>
-                <span className="font-bold text-choc-800 truncate flex-1 text-left text-sm">{p.name}</span>
+                <span className="font-bold text-choc-800 truncate flex-1 text-left text-sm">
+                  {p.name}
+                  {p.id === lastWinnerId && <span className="ml-1">⭐</span>}
+                </span>
                 {p.active && (
                   <span
                     className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] shrink-0"
@@ -146,6 +150,9 @@ export function GamePlay({ gameId }: GamePlayProps) {
                   <span className="text-xs text-choc-400">แตะคนอื่นเพื่อเปลี่ยนได้</span>
                 )}
               </div>
+              {lastWinnerId && (
+                <p className="text-xs text-choc-400 -mt-2 mb-3">⭐ = ชนะตาที่แล้ว</p>
+              )}
               <div className="grid grid-cols-2 gap-2.5 mb-6">
                 {activePlayers.map((p) => {
                   const isWinner = winnerId === p.id;
@@ -164,6 +171,7 @@ export function GamePlay({ gameId }: GamePlayProps) {
                       <span className="text-3xl">{p.emoji}</span>
                       <span className="font-bold text-choc-800 text-sm truncate w-full text-center">
                         {p.name}
+                        {p.id === lastWinnerId && <span className="ml-1">⭐</span>}
                       </span>
                       <span
                         className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${

@@ -13,7 +13,7 @@ const TABS: { id: GameTab; label: string; emoji: string }[] = [
 
 export function BottomNavigation({ active, onChange }: BottomNavigationProps) {
   return (
-    <nav className="sticky bottom-0 left-0 right-0 bg-cookie-50/95 backdrop-blur border-t border-cookie-200 pb-[env(safe-area-inset-bottom)] shrink-0">
+    <nav className="shrink-0 bg-cookie-50 border-t border-cookie-200 pb-[env(safe-area-inset-bottom)]">
       <div className="flex">
         {TABS.map((tab) => {
           const isActive = tab.id === active;

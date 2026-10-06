@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "./ui/Modal";
 
 interface NewGameModalProps {
@@ -17,13 +17,17 @@ function todayThaiSuggestion(): string {
 }
 
 export function NewGameModal({ open, onClose, onCreate }: NewGameModalProps) {
-  const [name, setName] = useState("");
   const suggestion = todayThaiSuggestion();
+  const [name, setName] = useState(suggestion);
   const quickNames = [suggestion, "Friday UNO", "Lunch UNO"];
+
+  // Re-prefill with today's date every time the modal opens (the date may have changed since last time).
+  useEffect(() => {
+    if (open) setName(todayThaiSuggestion());
+  }, [open]);
 
   const handleCreate = () => {
     onCreate(name.trim() || suggestion);
-    setName("");
   };
 
   return (
@@ -43,6 +47,7 @@ export function NewGameModal({ open, onClose, onCreate }: NewGameModalProps) {
       <label className="block text-sm font-bold text-choc-500 mb-2">ชื่อเกม</label>
       <input
         autoFocus
+        onFocus={(e) => e.target.select()}
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder={suggestion}
