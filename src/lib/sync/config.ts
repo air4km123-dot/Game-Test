@@ -1,6 +1,13 @@
 import type { SyncConfig } from "./types";
 
 /**
+ * Everyone who opens the app shares this one data location (no login, no code).
+ * It is a fixed random id so the path can't be guessed or enumerated from the
+ * database side; it is NOT a secret — it ships in the bundle like the config.
+ */
+export const SHARED_GROUP_ID = "fe19e8be40477569d32d78eceaffdac712b18d0dfcdfbc5a146e7b75524d8a45";
+
+/**
  * Both values are public Firebase web identifiers (safe to ship in the bundle;
  * access is controlled by firestore.rules). When they are missing the app runs
  * local-only exactly as before.

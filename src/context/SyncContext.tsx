@@ -9,11 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { useGames } from "./GamesContext";
-import { GroupGate } from "../components/GroupGate";
 import { SyncEngine } from "../lib/sync/engine";
 import { createFirestoreRemote, SyncHttpError } from "../lib/sync/firestore";
-import { clearGroupId, loadGroupId, saveGroupId } from "../lib/sync/group";
-import { syncConfig } from "../lib/sync/config";
+import { SHARED_GROUP_ID, syncConfig } from "../lib/sync/config";
 
 export type SyncStatus = "syncing" | "synced" | "offline" | "error";
 
@@ -24,8 +22,6 @@ interface SyncContextValue {
   lastSyncedAt: number | null;
   errorMessage: string | null;
   syncNow: () => void;
-  /** resolves false (and stays in the group) if the final upload failed */
-  leaveGroup: () => Promise<boolean>;
 }
 
 const SyncContext = createContext<SyncContextValue | null>(null);
@@ -41,10 +37,7 @@ function describeError(err: unknown): { status: SyncStatus; message: string } {
 }
 
 export function SyncProvider({ children }: { children: ReactNode }) {
-  const { games, tombstones, applyRemote, clearAll } = useGames();
-  const [groupId, setGroupId] = useState<string | null>(() => loadGroupId());
-  // "skip" lasts only until the page is reloaded, so the gate comes back next time
-  const [skipped, setSkipped] = useState(false);
+  const { games, tombstones, applyRemote } = useGames();
   const [status, setStatus] = useState<SyncStatus>("syncing");
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -75,13 +68,10 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // (re)create the engine when a group is joined; pull on open, focus and reconnect
+  // create the engine on open; pull on open, on returning to the app, and on reconnect
   useEffect(() => {
-    if (!syncConfig || !groupId) {
-      engineRef.current = null;
-      return;
-    }
-    const engine = new SyncEngine(createFirestoreRemote(syncConfig, groupId), {
+    if (!syncConfig) return;
+    const engine = new SyncEngine(createFirestoreRemote(syncConfig, SHARED_GROUP_ID), {
       getGames: () => gamesRef.current,
       getTombstones: () => tombstonesRef.current,
       applyRemote,
@@ -99,7 +89,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       document.removeEventListener("visibilitychange", refresh);
       engineRef.current = null;
     };
-  }, [groupId, applyRemote, run]);
+  }, [applyRemote, run]);
 
   // push shortly after local edits settle (only when something actually changed)
   useEffect(() => {
@@ -109,7 +99,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       if (!engine.isReady() || engine.pendingCount() > 0) void run((e) => e.push());
     }, 700);
     return () => clearTimeout(timer);
-  }, [games, tombstones, groupId, run]);
+  }, [games, tombstones, run]);
 
   // keep retrying while offline / failing
   useEffect(() => {
@@ -120,48 +110,10 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   const syncNow = useCallback(() => void run((e) => e.syncAll()), [run]);
 
-  // Leaving wipes this device's copy, so first make sure everything is safely uploaded.
-  const leaveGroup = useCallback(async (): Promise<boolean> => {
-    const engine = engineRef.current;
-    if (engine) {
-      try {
-        await engine.syncAll();
-      } catch {
-        return false;
-      }
-    }
-    clearGroupId();
-    clearAll();
-    setGroupId(null);
-    setLastSyncedAt(null);
-    return true;
-  }, [clearAll]);
-
   const value = useMemo<SyncContextValue>(
-    () => ({
-      enabled: !!syncConfig && !!groupId,
-      status,
-      lastSyncedAt,
-      errorMessage,
-      syncNow,
-      leaveGroup,
-    }),
-    [groupId, status, lastSyncedAt, errorMessage, syncNow, leaveGroup],
+    () => ({ enabled: !!syncConfig, status, lastSyncedAt, errorMessage, syncNow }),
+    [status, lastSyncedAt, errorMessage, syncNow],
   );
-
-  if (syncConfig && !groupId && !skipped) {
-    return (
-      <GroupGate
-        config={syncConfig}
-        localGameCount={games.length}
-        onJoined={(id) => {
-          saveGroupId(id);
-          setGroupId(id);
-        }}
-        onSkip={() => setSkipped(true)}
-      />
-    );
-  }
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }

@@ -22,7 +22,4 @@ export interface SyncConfig {
   baseUrl?: string;
 }
 
-/** Marker doc written when a group is created, so a mistyped code is distinguishable from an empty group. */
-export const GROUP_MARKER_ID = "_group";
-
 export type Tombstones = Record<string, number>;

@@ -2,9 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { Game } from "../../types";
 import { SyncEngine, type EngineHost } from "./engine";
 import { createFirestoreRemote, decodeDoc, encodeDoc, SyncHttpError } from "./firestore";
-import { hashGroupCode, normalizeGroupCode } from "./group";
 import { mergeRemote } from "./merge";
-import { GROUP_MARKER_ID, type RemoteDoc, type RemoteStore, type Tombstones } from "./types";
+import type { RemoteDoc, RemoteStore, Tombstones } from "./types";
 
 function makeGame(id: string, updatedAt: number, name = id): Game {
   return {
@@ -91,9 +90,10 @@ describe("mergeRemote", () => {
     expect(tombstones.a).toBe(200);
   });
 
-  it("ignores the group marker", () => {
-    const remote: RemoteDoc[] = [{ id: GROUP_MARKER_ID, updatedAt: 1, deleted: true }];
-    expect(mergeRemote([makeGame("a", 1)], {}, remote).games).toHaveLength(1);
+  it("unions games two devices created separately before they ever synced", () => {
+    const remote: RemoteDoc[] = [{ id: "b", updatedAt: 50, deleted: false, game: makeGame("b", 50, "from-other-device") }];
+    const { games } = mergeRemote([makeGame("a", 100, "mine")], {}, remote);
+    expect(games.map((g) => g.name).sort()).toEqual(["from-other-device", "mine"]);
   });
 });
 
@@ -265,16 +265,5 @@ describe("firestore REST client", () => {
     const remote = createFirestoreRemote(cfg, "gid", fetchMock as unknown as typeof fetch);
     await expect(remote.list()).rejects.toMatchObject({ name: "SyncHttpError", status: 403 });
     expect(new SyncHttpError(500, "x").status).toBe(500);
-  });
-});
-
-describe("group code", () => {
-  it("normalizes case and spaces, and hashes to a stable 64-char id", async () => {
-    expect(normalizeGroupCode("  AbC123 ")).toBe("abc123");
-    const a = await hashGroupCode("Cookie2026");
-    const b = await hashGroupCode("  cookie2026 ");
-    expect(a).toBe(b);
-    expect(a).toMatch(/^[0-9a-f]{64}$/);
-    expect(await hashGroupCode("cookie2027")).not.toBe(a);
   });
 });

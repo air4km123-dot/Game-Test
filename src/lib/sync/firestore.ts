@@ -47,7 +47,7 @@ export function decodeDoc(raw: FirestoreDocument): RemoteDoc | null {
 
 /**
  * Firestore over plain REST (no SDK). Data lives at groups/{groupId}/games/{gameId},
- * where groupId is the hash of the shared passcode — see firestore.rules.
+ * where groupId is the app's fixed shared id — see firestore.rules.
  */
 export function createFirestoreRemote(
   cfg: SyncConfig,

@@ -1,5 +1,5 @@
 import type { Game } from "../../types";
-import { GROUP_MARKER_ID, type RemoteDoc, type Tombstones } from "./types";
+import type { RemoteDoc, Tombstones } from "./types";
 
 /**
  * Last-write-wins merge, per game, by updatedAt. Pure: returns new state.
@@ -14,7 +14,6 @@ export function mergeRemote(
   const tombs: Tombstones = { ...tombstones };
 
   for (const doc of remote) {
-    if (doc.id === GROUP_MARKER_ID) continue;
     const local = byId.get(doc.id);
     const localTomb = tombs[doc.id];
 

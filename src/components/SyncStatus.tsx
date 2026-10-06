@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useSync, type SyncStatus as Status } from "../context/SyncContext";
 import { Modal } from "./ui/Modal";
-import { ConfirmDialog } from "./ui/ConfirmDialog";
 
 const CHIP: Record<Status, { label: string; className: string }> = {
   syncing: { label: "☁️ กำลังซิงค์…", className: "bg-uno-blue/15 text-uno-blue-dark" },
@@ -14,12 +13,10 @@ function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
 }
 
-/** Small status pill for the header; tap for details, manual sync and leaving the group. */
+/** Small status pill for the header; tap for details and a manual sync. */
 export function SyncChip() {
-  const { enabled, status, lastSyncedAt, errorMessage, syncNow, leaveGroup } = useSync();
+  const { enabled, status, lastSyncedAt, errorMessage, syncNow } = useSync();
   const [open, setOpen] = useState(false);
-  const [confirmLeave, setConfirmLeave] = useState(false);
-  const [leaveError, setLeaveError] = useState(false);
 
   if (!enabled) return null;
   const chip = CHIP[status];
@@ -45,7 +42,7 @@ export function SyncChip() {
             <p className="text-sm text-choc-500 px-1">{errorMessage}</p>
           )}
           <p className="text-xs text-choc-400 px-1">
-            ข้อมูลเกมถูกเก็บในกลุ่มของคุณ เปิดแอปจากเครื่องไหนก็ใส่รหัสกลุ่มเดียวกันเพื่อเห็นข้อมูลเดียวกัน
+            ข้อมูลเกมซิงค์กับฐานข้อมูลกลาง เปิดแอปจากเครื่องไหนก็เห็นข้อมูลชุดเดียวกัน
           </p>
           <button
             onClick={() => syncNow()}
@@ -53,35 +50,8 @@ export function SyncChip() {
           >
             🔄 ซิงค์ตอนนี้
           </button>
-          <button
-            onClick={() => {
-              setLeaveError(false);
-              setOpen(false);
-              setConfirmLeave(true);
-            }}
-            className="w-full h-14 rounded-2xl bg-uno-red/10 text-uno-red-dark font-bold active:scale-95 transition-transform"
-          >
-            ออกจากกลุ่ม
-          </button>
         </div>
       </Modal>
-
-      <ConfirmDialog
-        open={confirmLeave}
-        title="ออกจากกลุ่มนี้?"
-        description={
-          leaveError
-            ? "อัปโหลดข้อมูลล่าสุดไม่สำเร็จ ถ้าออกตอนนี้ข้อมูลที่ยังไม่ขึ้นระบบจะหาย ต่อเน็ตแล้วลองใหม่"
-            : "ข้อมูลในเครื่องนี้จะถูกล้าง แต่ข้อมูลในกลุ่มยังอยู่ ใส่รหัสเดิมเพื่อกลับมาดูได้"
-        }
-        confirmLabel="ออกจากกลุ่ม"
-        onCancel={() => setConfirmLeave(false)}
-        onConfirm={async () => {
-          const ok = await leaveGroup();
-          if (ok) setConfirmLeave(false);
-          else setLeaveError(true);
-        }}
-      />
     </>
   );
 }

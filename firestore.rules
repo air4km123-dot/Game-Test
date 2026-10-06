@@ -1,10 +1,11 @@
 rules_version = '2';
 
-// Data lives at groups/{groupId}/games/{gameId}.
-// groupId is the SHA-256 of the shared passcode (64 hex chars), so knowing the
-// passcode is what grants access. The `groups` collection itself can't be listed,
-// so groups can't be enumerated. Games are never hard-deleted: a deleted game is
-// overwritten with a small "tombstone" doc (deleted: true, no data).
+// Data lives at groups/{groupId}/games/{gameId}. The app uses one fixed 64-char
+// random groupId (SHARED_GROUP_ID in src/lib/sync/config.ts), so everyone who opens
+// the app shares the same data with no login. The `groups` collection itself can't be
+// listed, and a game's path can't be guessed without that id. Games are never
+// hard-deleted: a deleted game is overwritten with a small "tombstone" doc
+// (deleted: true, no data).
 service cloud.firestore {
   match /databases/{database}/documents {
     match /groups/{groupId}/games/{gameId} {
