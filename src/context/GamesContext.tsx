@@ -9,9 +9,11 @@ import {
 } from "react";
 import type { Game, Player, Round } from "../types";
 import { generateId } from "../lib/id";
-import { loadGames, saveGames } from "../lib/storage";
+import { loadGames, loadTombstones, saveGames, saveTombstones } from "../lib/storage";
 import { renumberRounds, settlementKey } from "../lib/calculations";
 import { DEFAULT_ROSTER } from "../lib/players";
+import { mergeRemote } from "../lib/sync/merge";
+import type { RemoteDoc, Tombstones } from "../lib/sync/types";
 
 interface NewPlayerInput {
   name: string;
@@ -28,6 +30,12 @@ export type RemovePlayerResult = "removed" | "has-history";
 
 interface GamesContextValue {
   games: Game[];
+  /** ids of deleted games (with deletion time), kept so syncing never resurrects them */
+  tombstones: Tombstones;
+  /** merge games fetched from the shared store into local state (last write wins) */
+  applyRemote: (docs: RemoteDoc[]) => void;
+  /** wipe local games — used when leaving a sync group */
+  clearAll: () => void;
   activeGames: Game[];
   finishedGames: Game[];
   createGame: (name: string) => Game;
@@ -53,15 +61,36 @@ function touch(game: Game): Game {
 }
 
 export function GamesProvider({ children }: { children: ReactNode }) {
-  const [games, setGames] = useState<Game[]>(() => loadGames());
+  // games and tombstones live in one state so a sync merge updates both atomically
+  const [store, setStore] = useState<{ games: Game[]; tombstones: Tombstones }>(() => ({
+    games: loadGames(),
+    tombstones: loadTombstones(),
+  }));
+  const { games, tombstones } = store;
+
+  const setGames = useCallback((updater: (prev: Game[]) => Game[]) => {
+    setStore((s) => ({ ...s, games: updater(s.games) }));
+  }, []);
 
   useEffect(() => {
     saveGames(games);
   }, [games]);
 
+  useEffect(() => {
+    saveTombstones(tombstones);
+  }, [tombstones]);
+
+  const applyRemote = useCallback((docs: RemoteDoc[]) => {
+    setStore((s) => mergeRemote(s.games, s.tombstones, docs));
+  }, []);
+
+  const clearAll = useCallback(() => {
+    setStore({ games: [], tombstones: {} });
+  }, []);
+
   const updateGame = useCallback((gameId: string, updater: (game: Game) => Game) => {
     setGames((prev) => prev.map((g) => (g.id === gameId ? touch(updater(g)) : g)));
-  }, []);
+  }, [setGames]);
 
   const createGame = useCallback((name: string): Game => {
     const now = Date.now();
@@ -84,10 +113,13 @@ export function GamesProvider({ children }: { children: ReactNode }) {
     };
     setGames((prev) => [game, ...prev]);
     return game;
-  }, []);
+  }, [setGames]);
 
   const deleteGame = useCallback((gameId: string) => {
-    setGames((prev) => prev.filter((g) => g.id !== gameId));
+    setStore((s) => ({
+      games: s.games.filter((g) => g.id !== gameId),
+      tombstones: { ...s.tombstones, [gameId]: Date.now() },
+    }));
   }, []);
 
   const finishGame = useCallback(
@@ -227,6 +259,9 @@ export function GamesProvider({ children }: { children: ReactNode }) {
 
   const value: GamesContextValue = {
     games,
+    tombstones,
+    applyRemote,
+    clearAll,
     activeGames,
     finishedGames,
     createGame,

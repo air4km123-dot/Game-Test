@@ -3,6 +3,7 @@ import { useGames } from "../context/GamesContext";
 import { NewGameModal } from "./NewGameModal";
 import { EmptyState } from "./ui/EmptyState";
 import { ConfirmDialog } from "./ui/ConfirmDialog";
+import { SyncChip } from "./SyncStatus";
 import type { GameTab } from "./BottomNavigation";
 import type { Game } from "../types";
 
@@ -83,6 +84,7 @@ export function Home({ onOpenGame }: HomeProps) {
           <h1 className="text-base font-display font-extrabold text-choc-800 truncate">เคลียร์คุกกี้</h1>
           <p className="text-[11px] text-choc-400 font-bold truncate">หนี้คุกกี้ต้องเคลียร์</p>
         </div>
+        <SyncChip />
       </header>
 
       <section className="px-5 pt-4">

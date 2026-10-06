@@ -32,6 +32,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # public Firebase web identifiers (repo Variables, not Secrets); if unset the app runs local-only
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+          VITE_FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

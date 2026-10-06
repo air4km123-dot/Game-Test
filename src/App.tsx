@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GamesProvider, useGames } from "./context/GamesContext";
+import { SyncProvider } from "./context/SyncContext";
 import { Home } from "./components/Home";
 import { GameShell } from "./components/GameShell";
 import { Dashboard } from "./components/Dashboard";
@@ -66,7 +67,9 @@ function AppShell() {
 function App() {
   return (
     <GamesProvider>
-      <AppShell />
+      <SyncProvider>
+        <AppShell />
+      </SyncProvider>
     </GamesProvider>
   );
 }
