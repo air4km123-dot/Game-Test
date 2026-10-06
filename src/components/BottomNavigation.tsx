@@ -1,14 +1,17 @@
 export type GameTab = "play" | "history" | "summary";
+/** Game tabs plus the cross-game dashboard. */
+export type NavTab = GameTab | "dashboard";
 
 interface BottomNavigationProps {
-  active: GameTab | null;
-  onChange: (tab: GameTab) => void;
+  active: NavTab | null;
+  onChange: (tab: NavTab) => void;
 }
 
-const TABS: { id: GameTab; label: string; emoji: string }[] = [
+const TABS: { id: NavTab; label: string; emoji: string }[] = [
   { id: "play", label: "เล่น", emoji: "🎮" },
   { id: "history", label: "ประวัติ", emoji: "📜" },
   { id: "summary", label: "สรุป", emoji: "🍪" },
+  { id: "dashboard", label: "แดชบอร์ด", emoji: "🏆" },
 ];
 
 export function BottomNavigation({ active, onChange }: BottomNavigationProps) {
